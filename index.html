@@ -166,7 +166,9 @@
             const albumCards = document.querySelectorAll('.album-card');
 
             function showAlbum(url) {
-                albumIframe.src = url;
+                // 新增：在 URL 後面加上一個獨一無二的時間戳記來「打破」快取
+                const cacheBustingUrl = `${url}?v=${new Date().getTime()}`;
+                albumIframe.src = cacheBustingUrl;
                 albumViewer.classList.remove('hidden');
                 mainContent.classList.add('hidden');
             }
@@ -291,6 +293,7 @@
                             this.size = Math.random() * 2.0 + 1; this.life = 100; this.opacity = 1;
                             break;
                         case 'burst_spark':
+                            if (!origin) return; // 安全檢查
                             this.x = origin.x; this.y = origin.y;
                             const angle = Math.random() * Math.PI * 2;
                             const speed = Math.random() * 12 + 4;
