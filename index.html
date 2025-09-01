@@ -18,7 +18,7 @@
             overflow: hidden; /* 確保 canvas 背景填滿且無滾動條 */
         }
 
-        /* Canvas 作為固定背景 */
+        /* Canvas 作為固定背景，增加 cursor 樣式 */
         #interactive-background {
             position: fixed;
             top: 0;
@@ -26,6 +26,11 @@
             width: 100%;
             height: 100%;
             z-index: 0;
+            cursor: grab;
+        }
+        
+        #interactive-background:active {
+            cursor: grabbing;
         }
 
         /* 主要內容容器，使用玻璃擬態效果 */
@@ -76,40 +81,36 @@
     <!-- 主要內容 -->
     <main class="min-h-screen flex flex-col items-center justify-center p-4">
         
-        <div class="content-wrapper w-full max-w-4xl rounded-2xl p-8 md:p-12 text-center shadow-2xl">
+        <div class="content-wrapper w-full max-w-4xl rounded-2xl p-6 sm:p-8 md:p-12 text-center shadow-2xl">
 
             <!-- 藝人名稱與介紹 -->
             <header class="mb-10">
-                <div class="flex items-center justify-center gap-x-4">
-                    <h1 class="text-6xl md:text-8xl font-black tracking-tighter text-white">王不亡</h1>
+                <div class="flex items-center justify-center gap-x-3 sm:gap-x-4">
+                    <h1 class="text-5xl sm:text-6xl md:text-8xl font-black tracking-tighter text-white">王不亡</h1>
                     <div class="flex flex-col items-start">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7 sm:h-8 sm:w-8 text-blue-400" viewBox="0 0 20 20" fill="currentColor">
                             <path fill-rule="evenodd" d="M6.267 3.455a3.066 3.066 0 001.745-.723 3.066 3.066 0 013.976 0 3.066 3.066 0 001.745.723 3.066 3.066 0 012.812 2.812c.051.643.304 1.254.723 1.745a3.066 3.066 0 010 3.976 3.066 3.066 0 00-.723 1.745 3.066 3.066 0 01-2.812 2.812 3.066 3.066 0 00-1.745.723 3.066 3.066 0 01-3.976 0 3.066 3.066 0 00-1.745-.723 3.066 3.066 0 01-2.812-2.812 3.066 3.066 0 00-.723-1.745 3.066 3.066 0 010-3.976 3.066 3.066 0 00.723-1.745 3.066 3.066 0 012.812-2.812zm7.44 5.252a.75.75 0 00-1.06-1.06L9 10.94l-1.72-1.72a.75.75 0 00-1.06 1.06l2.25 2.25a.75.75 0 001.06 0l3.75-3.75z" clip-rule="evenodd"></path>
                         </svg>
                         <span class="text-xs text-blue-300 font-bold"></span>
                     </div>
                 </div>
-                <p class="text-xl md:text-2xl text-gray-300 mt-2">Wang Bu-Wang</p>
+                <p class="text-lg sm:text-xl md:text-2xl text-gray-300 mt-2">Wang Bu-Wang</p>
                 <p class="text-gray-400 mt-6 max-w-2xl mx-auto">
                     在星辰與餘燼之間，探索存在的詩篇。
                 </p>
             </header>
 
             <!-- 專輯選擇區塊 -->
-            <section class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-12">
-                <!-- 
-                    提示：請將下面的 href 屬性值更改為您部署後的實際專輯頁面網址。
-                    例如：href="https://your-username.github.io/album1/"
-                -->
+            <section class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12">
                 <a href="https://dbding.github.io/WBW-Debut-Album/" target="_blank" rel="noopener noreferrer" class="album-card album-card-1 block rounded-xl p-6 cursor-pointer">
                     <p class="text-sm text-gray-400">首張專輯</p>
-                    <h2 class="album-title text-4xl font-bold mt-1">王不亡</h2>
+                    <h2 class="album-title text-3xl sm:text-4xl font-bold mt-1">王不亡</h2>
                     <p class="text-gray-300 mt-3">一張探索存在、記憶與虛無的宇宙史詩。</p>
                 </a>
                 
                 <a href="https://dbding.github.io/DisorderedGarden/" target="_blank" rel="noopener noreferrer" class="album-card album-card-2 block rounded-xl p-6 cursor-pointer">
                     <p class="text-sm text-gray-400">第二張專輯</p>
-                    <h2 class="album-title text-4xl font-bold mt-1">失序花園</h2>
+                    <h2 class="album-title text-3xl sm:text-4xl font-bold mt-1">失序花園</h2>
                     <p class="text-gray-300 mt-3">一場關於秩序崩壞與野蠻生長的搖滾寓言。</p>
                 </a>
             </section>
@@ -134,6 +135,10 @@
 
         </div>
     </main>
+    
+    <footer class="fixed bottom-4 w-full text-center text-gray-600 text-xs z-10">
+        <p>© 2025 Wang Bu-Wang. All Rights Reserved.</p>
+    </footer>
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
@@ -143,119 +148,245 @@
             let height = canvas.height = window.innerHeight;
 
             // --- 全域設定 ---
-            const STAR_COUNT = Math.floor(width * height / 4000); // 星星數量
-            const EMBER_COUNT = Math.floor(width * height / 4000); // 餘燼數量
+            const STAR_COUNT = Math.floor(width * height / 2500); 
+            const SHOOTING_STAR_COUNT = 25; 
+            const EMBER_COUNT = Math.floor(width * height / 2500);
+            const SPARK_COUNT = 25;
             let particles = [];
-            let hoverState = 'none'; // 'none', 'left', 'right'
+            let nebulae = [];
+            let hoverState = 'none';
 
-            // --- 監聽滑鼠事件 ---
-            const albumCard1 = document.querySelector('.album-card-1');
-            const albumCard2 = document.querySelector('.album-card-2');
+            // --- 滑鼠/觸控互動物件 ---
+            const mouse = {
+                x: null, y: null,
+                px: null, py: null, // 上一個點的位置
+                dx: 0, dy: 0, // 速度
+                down: false
+            };
 
-            albumCard1.addEventListener('mouseenter', () => hoverState = 'left');
-            albumCard1.addEventListener('mouseleave', () => hoverState = 'none');
-            albumCard2.addEventListener('mouseenter', () => hoverState = 'right');
-            albumCard2.addEventListener('mouseleave', () => hoverState = 'none');
+            // --- 監聽滑鼠與觸控事件 ---
+            function updateMousePosition(e) {
+                const event = e.touches ? e.touches[0] : e;
+                mouse.x = event.clientX;
+                mouse.y = event.clientY;
+            }
+            canvas.addEventListener('mousedown', e => {
+                mouse.down = true;
+                updateMousePosition(e);
+                if(mouse.x > width / 2) createSparkBurst(mouse.x, mouse.y);
+            });
+            canvas.addEventListener('touchstart', e => {
+                mouse.down = true;
+                updateMousePosition(e);
+                if(mouse.x > width / 2) createSparkBurst(mouse.x, mouse.y);
+            });
+             canvas.addEventListener('mouseup', () => mouse.down = false);
+             canvas.addEventListener('touchend', () => mouse.down = false);
+            canvas.addEventListener('mousemove', e => {
+                mouse.px = mouse.x;
+                mouse.py = mouse.y;
+                updateMousePosition(e);
+                mouse.dx = mouse.x - mouse.px;
+                mouse.dy = mouse.y - mouse.py;
+            });
+             canvas.addEventListener('touchmove', e => {
+                mouse.px = mouse.x;
+                mouse.py = mouse.y;
+                updateMousePosition(e);
+                mouse.dx = mouse.x - mouse.px;
+                mouse.dy = mouse.y - mouse.py;
+            });
+
+
+            // --- 點燃火花函式 ---
+            function createSparkBurst(x, y) {
+                 const burstSize = 40; // 增加火花數量
+                 for (let i = 0; i < burstSize; i++) {
+                     particles.push(new Particle('burst_spark', { x, y }));
+                 }
+            }
             
             // --- 粒子類別 ---
             class Particle {
-                constructor(type) {
+                constructor(type, origin = null) {
                     this.type = type;
-                    this.reset();
+                    this.reset(origin);
                 }
 
-                reset() {
-                    if (this.type === 'star') {
-                        // 星星從左半邊出現
-                        this.x = Math.random() * width / 2;
-                        this.y = Math.random() * height;
-                        this.vx = (Math.random() - 0.5) * 0.2; // 緩慢水平移動
-                        this.vy = Math.random() * 0.2 + 0.1;   // 緩慢向下移動
-                        this.size = Math.random() * 1.5 + 0.5;
-                        this.opacity = Math.random() * 0.5 + 0.3;
-                    } else { // ember
-                        // 餘燼從右半邊底部出現
-                        this.x = Math.random() * width / 2 + width / 2;
-                        this.y = Math.random() * 50 + height;
-                        this.vx = (Math.random() - 0.5) * 0.5; // 左右飄移
-                        this.vy = -(Math.random() * 1.5 + 0.5); // 向上移動
-                        this.size = Math.random() * 2 + 1;
-                        this.opacity = Math.random() * 0.6 + 0.2;
+                reset(origin = null) {
+                    this.life = 1;
+                    this.opacity = 0;
+                    this.transformed = false;
+                    this.vx = 0; this.vy = 0;
+
+                    switch (this.type) { // FIX: Removed redundant specificType variable
+                        case 'star':
+                            this.x = Math.random() * width / 2;
+                            this.y = Math.random() * height;
+                            this.vx = (Math.random() - 0.5) * 0.3;
+                            this.vy = (Math.random() - 0.5) * 0.3;
+                            this.size = Math.random() * 2.0 + 1.0;
+                            this.opacity = Math.random() * 0.6 + 0.3;
+                            break;
+                        case 'shooting_star':
+                            if (Math.random() > 0.5) { this.x = Math.random() * width; this.y = -50; } 
+                            else { this.x = -50; this.y = Math.random() * height; }
+                            this.vx = Math.random() * 8 + 8; this.vy = Math.random() * 8 + 8;
+                            this.size = Math.random() * 2 + 1; this.len = Math.random() * 200 + 150;
+                            this.opacity = Math.random() * 0.5 + 0.5;
+                            break;
+                        case 'ember':
+                            this.x = Math.random() * width / 2 + width / 2; this.y = Math.random() * 50 + height;
+                            this.vx = (Math.random() - 0.5) * 1.5; this.vy = -(Math.random() * 3.0 + 1.5);
+                            this.size = Math.random() * 3.0 + 1.5; this.opacity = Math.random() * 0.7 + 0.2;
+                            break;
+                        case 'spark':
+                            this.x = Math.random() * width / 2 + width / 2; this.y = Math.random() * height * 0.2 + height * 0.8;
+                            this.vx = (Math.random() - 0.5) * 10; this.vy = -(Math.random() * 8 + 5);
+                            this.size = Math.random() * 2.5 + 1; this.life = 100; this.opacity = 1;
+                            break;
+                        case 'burst_spark':
+                            this.x = origin.x; this.y = origin.y;
+                            const angle = Math.random() * Math.PI * 2;
+                            const speed = Math.random() * 15 + 5;
+                            this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
+                            this.size = Math.random() * 2.5 + 1.5; this.life = 80; this.opacity = 1;
+                            break;
                     }
                 }
 
                 update() {
-                    // 根據滑鼠懸停狀態調整速度
                     let speedMultiplier = 1;
-                    if ((hoverState === 'left' && this.type === 'star') || (hoverState === 'right' && this.type === 'ember')) {
-                        speedMultiplier = 3;
-                    }
-
-                    this.x += this.vx * speedMultiplier;
-                    this.y += this.vy * speedMultiplier;
-
-                    if (this.type === 'ember') {
-                        this.opacity -= 0.005;
+                    if ((hoverState === 'left' && (this.type === 'star' || this.type === 'shooting_star')) || 
+                        (hoverState === 'right' && (this.type === 'ember' || this.type === 'spark'))) {
+                        speedMultiplier = 5;
                     }
                     
-                    // 如果粒子超出邊界或消失，則重置
-                    if (this.y < -10 || this.y > height + 10 || this.x < -10 || this.x > width + 10 || this.opacity <= 0) {
+                    // --- 滑鼠拖動星空 ---
+                    if (mouse.down && (this.type === 'star' || this.type === 'shooting_star')) {
+                        const dx = this.x - mouse.x; const dy = this.y - mouse.y;
+                        const dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < 200) {
+                            const force = (200 - dist) / 200;
+                            this.vx += (mouse.dx || 0) * force * 0.2;
+                            this.vy += (mouse.dy || 0) * force * 0.2;
+                        }
+                    }
+
+                    this.x += this.vx * speedMultiplier * 0.1;
+                    this.y += this.vy * speedMultiplier * 0.1;
+
+                    // 增加阻力讓粒子恢復平靜
+                    this.vx *= 0.96; this.vy *= 0.96;
+
+                    // --- 特效更新與轉換邏輯 ---
+                    switch (this.type) {
+                        case 'star': case 'shooting_star':
+                            if (this.x > width / 2 && !this.transformed) {
+                                this.transformed = true; this.type = 'fading_spark';
+                                this.vx = (Math.random() - 0.5) * 4; this.vy = Math.random() * 5 + 3;
+                                this.life = 100; this.size = Math.random() * 3 + 2;
+                            }
+                            break;
+                        case 'spark': case 'fading_spark': case 'burst_spark':
+                            this.life -= 2; this.opacity = this.life > 0 ? this.life / 100 : 0;
+                            break;
+                        case 'ember':
+                            this.opacity -= 0.008; break;
+                    }
+
+                    const isOutOfBox = this.y < -this.len - 50 || this.y > height + this.len + 50 || this.x < -this.len - 50 || this.x > width + this.len + 50;
+                    if (isOutOfBox || this.opacity <= 0 || this.life <= 0) {
+                        // FIX: If it's a transient particle (transformed or burst), assign it a new random standard type before resetting.
+                        if(this.transformed || this.type === 'burst_spark') {
+                            this.type = ['star', 'ember', 'spark', 'shooting_star'][Math.floor(Math.random() * 4)];
+                        }
                         this.reset();
                     }
                 }
 
                 draw() {
-                    ctx.beginPath();
+                    if(this.opacity <= 0) return;
                     ctx.globalAlpha = this.opacity;
-                    if (this.type === 'star') {
-                        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-                        gradient.addColorStop(0, 'rgba(254, 250, 224, 1)');
-                        gradient.addColorStop(1, 'rgba(254, 250, 224, 0)');
-                        ctx.fillStyle = gradient;
-                    } else { // ember
-                        const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.size);
-                        gradient.addColorStop(0, 'rgba(255, 140, 0, 1)');
-                        gradient.addColorStop(0.5, 'rgba(255, 72, 0, 0.8)');
-                        gradient.addColorStop(1, 'rgba(255, 72, 0, 0)');
-                        ctx.fillStyle = gradient;
+                    
+                    switch (this.type) {
+                        case 'star':
+                            ctx.fillStyle = `rgba(254, 250, 224, ${this.opacity})`; ctx.shadowBlur = 10; ctx.shadowColor = '#fefae0';
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+                            break;
+                        case 'shooting_star':
+                            const gradient = ctx.createLinearGradient(this.x, this.y, this.x - this.len * (this.vx / 15) , this.y - this.len * (this.vy / 15));
+                            gradient.addColorStop(0, `rgba(255, 255, 255, ${this.opacity})`); gradient.addColorStop(1, 'rgba(255, 255, 255, 0)');
+                            ctx.strokeStyle = gradient; ctx.lineWidth = this.size; ctx.lineCap = 'round';
+                            ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - this.len * (this.vx / 15), this.y - this.len * (this.vy/15)); ctx.stroke();
+                            break;
+                        case 'ember':
+                            ctx.fillStyle = `rgba(255, 140, 0, ${this.opacity})`; ctx.shadowBlur = 15; ctx.shadowColor = '#ff4800';
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+                            break;
+                        case 'spark': case 'burst_spark':
+                             ctx.fillStyle = `rgba(255, 220, 150, ${this.opacity})`; ctx.shadowBlur = 20; ctx.shadowColor = '#ff8c00';
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+                            break;
+                        case 'fading_spark':
+                             ctx.fillStyle = `rgba(255, 100, 50, ${this.opacity})`; ctx.shadowBlur = 15; ctx.shadowColor = '#ff4800';
+                            ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
+                            break;
                     }
-                    ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                }
+            }
+
+            // --- 星雲物件 ---
+             class Nebula {
+                constructor() {
+                    this.x = Math.random() * width / 2;
+                    this.y = Math.random() * height;
+                    this.vx = (Math.random() - 0.5) * 0.1;
+                    this.vy = (Math.random() - 0.5) * 0.1;
+                    this.radius = Math.random() * 200 + 100;
+                    this.color = `rgba(${Math.floor(Math.random()*50+20)}, ${Math.floor(Math.random()*50+30)}, ${Math.floor(Math.random()*50+100)}, 0.1)`;
+                }
+                draw() {
+                    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
+                    gradient.addColorStop(0, this.color);
+                    gradient.addColorStop(1, `rgba(0,0,0,0)`);
+                    ctx.fillStyle = gradient;
+                    ctx.beginPath();
+                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
                     ctx.fill();
                 }
             }
             
-            // --- 初始化 ---
             function init() {
-                particles = [];
-                for (let i = 0; i < STAR_COUNT; i++) {
-                    particles.push(new Particle('star'));
-                }
-                for (let i = 0; i < EMBER_COUNT; i++) {
-                    particles.push(new Particle('ember'));
+                particles = []; nebulae = [];
+                for(let i=0; i < 5; i++) nebulae.push(new Nebula());
+                const types = {STAR_COUNT, SHOOTING_STAR_COUNT, EMBER_COUNT, SPARK_COUNT};
+                const typeNames = {STAR_COUNT: 'star', SHOOTING_STAR_COUNT: 'shooting_star', EMBER_COUNT: 'ember', SPARK_COUNT: 'spark'};
+                for(const [key, count] of Object.entries(types)) {
+                    for (let i = 0; i < count; i++) {
+                        particles.push(new Particle(typeNames[key]));
+                    }
                 }
             }
 
-            // --- 動畫循環 ---
             function animate() {
                 ctx.clearRect(0, 0, width, height);
+                // 繪製星雲
+                ctx.globalCompositeOperation = 'lighter';
+                nebulae.forEach(n => n.draw());
+                ctx.globalCompositeOperation = 'source-over';
 
-                particles.forEach(p => {
-                    p.update();
-                    p.draw();
-                });
-
-                ctx.globalAlpha = 1; // 重置透明度
+                particles.forEach(p => { p.update(); p.draw(); });
+                ctx.globalAlpha = 1;
                 requestAnimationFrame(animate);
             }
 
-            // --- 視窗大小調整 ---
             window.addEventListener('resize', () => {
                 width = canvas.width = window.innerWidth;
                 height = canvas.height = window.innerHeight;
-                init(); // 重新初始化粒子
+                init();
             });
 
-            // --- 啟動 ---
             init();
             animate();
         });
