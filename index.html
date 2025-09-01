@@ -147,20 +147,29 @@
             let width = canvas.width = window.innerWidth;
             let height = canvas.height = window.innerHeight;
 
-            // --- 全域設定 ---
-            const STAR_COUNT = Math.floor(width * height / 2500); 
-            const SHOOTING_STAR_COUNT = 25; 
-            const EMBER_COUNT = Math.floor(width * height / 2500);
-            const SPARK_COUNT = 25;
+            // --- 全域設定 (簡潔化) ---
+            const STAR_COUNT = Math.floor(width * height / 8000); 
+            const SHOOTING_STAR_COUNT = 8; 
+            const EMBER_COUNT = Math.floor(width * height / 8000);
+            const SPARK_COUNT = 10;
             let particles = [];
-            let nebulae = [];
             let hoverState = 'none';
+            
+            // --- 新增專輯卡片事件監聽 ---
+            const albumCard1 = document.querySelector('.album-card-1');
+            const albumCard2 = document.querySelector('.album-card-2');
+
+            albumCard1.addEventListener('mouseenter', () => hoverState = 'left');
+            albumCard1.addEventListener('mouseleave', () => hoverState = 'none');
+            albumCard2.addEventListener('mouseenter', () => hoverState = 'right');
+            albumCard2.addEventListener('mouseleave', () => hoverState = 'none');
+
 
             // --- 滑鼠/觸控互動物件 ---
             const mouse = {
                 x: null, y: null,
-                px: null, py: null, // 上一個點的位置
-                dx: 0, dy: 0, // 速度
+                px: null, py: null,
+                dx: 0, dy: 0,
                 down: false
             };
 
@@ -197,10 +206,9 @@
                 mouse.dy = mouse.y - mouse.py;
             });
 
-
             // --- 點燃火花函式 ---
             function createSparkBurst(x, y) {
-                 const burstSize = 40; // 增加火花數量
+                 const burstSize = 30; // 減少火花數量
                  for (let i = 0; i < burstSize; i++) {
                      particles.push(new Particle('burst_spark', { x, y }));
                  }
@@ -219,38 +227,38 @@
                     this.transformed = false;
                     this.vx = 0; this.vy = 0;
 
-                    switch (this.type) { // FIX: Removed redundant specificType variable
+                    switch (this.type) {
                         case 'star':
                             this.x = Math.random() * width / 2;
                             this.y = Math.random() * height;
-                            this.vx = (Math.random() - 0.5) * 0.3;
-                            this.vy = (Math.random() - 0.5) * 0.3;
-                            this.size = Math.random() * 2.0 + 1.0;
-                            this.opacity = Math.random() * 0.6 + 0.3;
+                            this.vx = (Math.random() - 0.5) * 0.2; // 減慢速度
+                            this.vy = (Math.random() - 0.5) * 0.2;
+                            this.size = Math.random() * 1.5 + 0.5; // 縮小尺寸
+                            this.opacity = Math.random() * 0.5 + 0.2;
                             break;
                         case 'shooting_star':
                             if (Math.random() > 0.5) { this.x = Math.random() * width; this.y = -50; } 
                             else { this.x = -50; this.y = Math.random() * height; }
-                            this.vx = Math.random() * 8 + 8; this.vy = Math.random() * 8 + 8;
-                            this.size = Math.random() * 2 + 1; this.len = Math.random() * 200 + 150;
-                            this.opacity = Math.random() * 0.5 + 0.5;
+                            this.vx = Math.random() * 6 + 6; this.vy = Math.random() * 6 + 6;
+                            this.size = Math.random() * 1.5 + 1; this.len = Math.random() * 150 + 100;
+                            this.opacity = Math.random() * 0.4 + 0.4;
                             break;
                         case 'ember':
                             this.x = Math.random() * width / 2 + width / 2; this.y = Math.random() * 50 + height;
-                            this.vx = (Math.random() - 0.5) * 1.5; this.vy = -(Math.random() * 3.0 + 1.5);
-                            this.size = Math.random() * 3.0 + 1.5; this.opacity = Math.random() * 0.7 + 0.2;
+                            this.vx = (Math.random() - 0.5) * 1.0; this.vy = -(Math.random() * 2.0 + 1.0);
+                            this.size = Math.random() * 2.5 + 1.0; this.opacity = Math.random() * 0.6 + 0.2;
                             break;
                         case 'spark':
                             this.x = Math.random() * width / 2 + width / 2; this.y = Math.random() * height * 0.2 + height * 0.8;
-                            this.vx = (Math.random() - 0.5) * 10; this.vy = -(Math.random() * 8 + 5);
-                            this.size = Math.random() * 2.5 + 1; this.life = 100; this.opacity = 1;
+                            this.vx = (Math.random() - 0.5) * 8; this.vy = -(Math.random() * 6 + 4);
+                            this.size = Math.random() * 2.0 + 1; this.life = 100; this.opacity = 1;
                             break;
                         case 'burst_spark':
                             this.x = origin.x; this.y = origin.y;
                             const angle = Math.random() * Math.PI * 2;
-                            const speed = Math.random() * 15 + 5;
+                            const speed = Math.random() * 12 + 4;
                             this.vx = Math.cos(angle) * speed; this.vy = Math.sin(angle) * speed;
-                            this.size = Math.random() * 2.5 + 1.5; this.life = 80; this.opacity = 1;
+                            this.size = Math.random() * 2.0 + 1.5; this.life = 80; this.opacity = 1;
                             break;
                     }
                 }
@@ -262,7 +270,6 @@
                         speedMultiplier = 5;
                     }
                     
-                    // --- 滑鼠拖動星空 ---
                     if (mouse.down && (this.type === 'star' || this.type === 'shooting_star')) {
                         const dx = this.x - mouse.x; const dy = this.y - mouse.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
@@ -276,10 +283,8 @@
                     this.x += this.vx * speedMultiplier * 0.1;
                     this.y += this.vy * speedMultiplier * 0.1;
 
-                    // 增加阻力讓粒子恢復平靜
-                    this.vx *= 0.96; this.vy *= 0.96;
+                    this.vx *= 0.97; this.vy *= 0.97; // 增加阻力
 
-                    // --- 特效更新與轉換邏輯 ---
                     switch (this.type) {
                         case 'star': case 'shooting_star':
                             if (this.x > width / 2 && !this.transformed) {
@@ -297,7 +302,6 @@
 
                     const isOutOfBox = this.y < -this.len - 50 || this.y > height + this.len + 50 || this.x < -this.len - 50 || this.x > width + this.len + 50;
                     if (isOutOfBox || this.opacity <= 0 || this.life <= 0) {
-                        // FIX: If it's a transient particle (transformed or burst), assign it a new random standard type before resetting.
                         if(this.transformed || this.type === 'burst_spark') {
                             this.type = ['star', 'ember', 'spark', 'shooting_star'][Math.floor(Math.random() * 4)];
                         }
@@ -311,7 +315,7 @@
                     
                     switch (this.type) {
                         case 'star':
-                            ctx.fillStyle = `rgba(254, 250, 224, ${this.opacity})`; ctx.shadowBlur = 10; ctx.shadowColor = '#fefae0';
+                            ctx.fillStyle = `rgba(254, 250, 224, ${this.opacity})`; ctx.shadowBlur = 8; ctx.shadowColor = '#fefae0';
                             ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
                             break;
                         case 'shooting_star':
@@ -321,45 +325,23 @@
                             ctx.beginPath(); ctx.moveTo(this.x, this.y); ctx.lineTo(this.x - this.len * (this.vx / 15), this.y - this.len * (this.vy/15)); ctx.stroke();
                             break;
                         case 'ember':
-                            ctx.fillStyle = `rgba(255, 140, 0, ${this.opacity})`; ctx.shadowBlur = 15; ctx.shadowColor = '#ff4800';
+                            ctx.fillStyle = `rgba(255, 140, 0, ${this.opacity})`; ctx.shadowBlur = 12; ctx.shadowColor = '#ff4800';
                             ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
                             break;
                         case 'spark': case 'burst_spark':
-                             ctx.fillStyle = `rgba(255, 220, 150, ${this.opacity})`; ctx.shadowBlur = 20; ctx.shadowColor = '#ff8c00';
+                             ctx.fillStyle = `rgba(255, 220, 150, ${this.opacity})`; ctx.shadowBlur = 15; ctx.shadowColor = '#ff8c00';
                             ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
                             break;
                         case 'fading_spark':
-                             ctx.fillStyle = `rgba(255, 100, 50, ${this.opacity})`; ctx.shadowBlur = 15; ctx.shadowColor = '#ff4800';
+                             ctx.fillStyle = `rgba(255, 100, 50, ${this.opacity})`; ctx.shadowBlur = 12; ctx.shadowColor = '#ff4800';
                             ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); ctx.shadowBlur = 0;
                             break;
                     }
                 }
             }
-
-            // --- 星雲物件 ---
-             class Nebula {
-                constructor() {
-                    this.x = Math.random() * width / 2;
-                    this.y = Math.random() * height;
-                    this.vx = (Math.random() - 0.5) * 0.1;
-                    this.vy = (Math.random() - 0.5) * 0.1;
-                    this.radius = Math.random() * 200 + 100;
-                    this.color = `rgba(${Math.floor(Math.random()*50+20)}, ${Math.floor(Math.random()*50+30)}, ${Math.floor(Math.random()*50+100)}, 0.1)`;
-                }
-                draw() {
-                    const gradient = ctx.createRadialGradient(this.x, this.y, 0, this.x, this.y, this.radius);
-                    gradient.addColorStop(0, this.color);
-                    gradient.addColorStop(1, `rgba(0,0,0,0)`);
-                    ctx.fillStyle = gradient;
-                    ctx.beginPath();
-                    ctx.arc(this.x, this.y, this.radius, 0, Math.PI*2);
-                    ctx.fill();
-                }
-            }
             
             function init() {
-                particles = []; nebulae = [];
-                for(let i=0; i < 5; i++) nebulae.push(new Nebula());
+                particles = [];
                 const types = {STAR_COUNT, SHOOTING_STAR_COUNT, EMBER_COUNT, SPARK_COUNT};
                 const typeNames = {STAR_COUNT: 'star', SHOOTING_STAR_COUNT: 'shooting_star', EMBER_COUNT: 'ember', SPARK_COUNT: 'spark'};
                 for(const [key, count] of Object.entries(types)) {
@@ -371,11 +353,6 @@
 
             function animate() {
                 ctx.clearRect(0, 0, width, height);
-                // 繪製星雲
-                ctx.globalCompositeOperation = 'lighter';
-                nebulae.forEach(n => n.draw());
-                ctx.globalCompositeOperation = 'source-over';
-
                 particles.forEach(p => { p.update(); p.draw(); });
                 ctx.globalAlpha = 1;
                 requestAnimationFrame(animate);
