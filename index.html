@@ -166,7 +166,6 @@
             const albumCards = document.querySelectorAll('.album-card');
 
             function showAlbum(url) {
-                // 新增：在 URL 後面加上一個獨一無二的時間戳記來「打破」快取
                 const cacheBustingUrl = `${url}?v=${new Date().getTime()}`;
                 albumIframe.src = cacheBustingUrl;
                 albumViewer.classList.remove('hidden');
@@ -174,7 +173,7 @@
             }
 
             function hideAlbum() {
-                albumIframe.src = 'about:blank'; // 清空 iframe 內容以停止背景動畫
+                albumIframe.src = 'about:blank';
                 albumViewer.classList.add('hidden');
                 mainContent.classList.remove('hidden');
             }
@@ -188,11 +187,7 @@
                 });
             });
 
-            // 監聽來自 iframe 的訊息，以關閉檢視器
             window.addEventListener('message', (event) => {
-                // 為了安全，可以檢查訊息來源
-                // if (event.origin !== 'https://dbding.github.io') return;
-                
                 if (event.data === 'closeAlbumViewer') {
                     hideAlbum();
                 }
@@ -217,8 +212,10 @@
 
             function updateMousePosition(e) {
                 const event = e.touches ? e.touches[0] : e;
-                mouse.x = event.clientX;
-                mouse.y = event.clientY;
+                if(event) {
+                    mouse.x = event.clientX;
+                    mouse.y = event.clientY;
+                }
             }
             canvas.addEventListener('mousedown', e => {
                 mouse.down = true;
@@ -240,6 +237,7 @@
                 mouse.dy = mouse.y - mouse.py;
             });
              canvas.addEventListener('touchmove', e => {
+                e.preventDefault(); // 防止頁面滾動
                 mouse.px = mouse.x;
                 mouse.py = mouse.y;
                 updateMousePosition(e);
@@ -265,22 +263,30 @@
                     this.opacity = 0;
                     this.transformed = false;
                     this.vx = 0; this.vy = 0;
+                    this.len = 0;
 
                     switch (this.type) {
                         case 'star':
                             this.x = Math.random() * width / 2;
                             this.y = Math.random() * height;
-                            this.vx = (Math.random() - 0.5) * 0.2;
-                            this.vy = (Math.random() - 0.5) * 0.2;
-                            this.size = Math.random() * 1.5 + 0.5;
-                            this.opacity = Math.random() * 0.5 + 0.2;
+                            this.vx = (Math.random() - 0.5) * 0.4; // 增加閒置時的漂流感
+                            this.vy = (Math.random() - 0.5) * 0.4; // 增加閒置時的漂流感
+                            this.depth = Math.random() * 0.6 + 0.4; 
+                            this.size = (Math.random() * 1.5 + 0.5) * this.depth;
+                            this.baseOpacity = (Math.random() * 0.5 + 0.3) * this.depth;
+                            this.pulseSpeed = Math.random() * 0.002;
+                            this.pulseOffset = Math.random() * Math.PI * 2;
+                            this.opacity = this.baseOpacity;
                             break;
                         case 'shooting_star':
                             if (Math.random() > 0.5) { this.x = Math.random() * width; this.y = -50; } 
                             else { this.x = -50; this.y = Math.random() * height; }
-                            this.vx = Math.random() * 6 + 6; this.vy = Math.random() * 6 + 6;
-                            this.size = Math.random() * 1.5 + 1; this.len = Math.random() * 150 + 100;
-                            this.opacity = Math.random() * 0.4 + 0.4;
+                            this.vx = Math.random() * 8 + 10; // 更快更亮
+                            this.vy = Math.random() * 8 + 10;
+                            this.size = Math.random() * 2 + 2;
+                            this.len = Math.random() * 250 + 200;
+                            this.opacity = Math.random() * 0.6 + 0.7;
+                            this.depth = Math.random() * 0.4 + 0.6;
                             break;
                         case 'ember':
                             this.x = Math.random() * width / 2 + width / 2; this.y = Math.random() * 50 + height;
@@ -293,7 +299,7 @@
                             this.size = Math.random() * 2.0 + 1; this.life = 100; this.opacity = 1;
                             break;
                         case 'burst_spark':
-                            if (!origin) return; // 安全檢查
+                            if (!origin) return;
                             this.x = origin.x; this.y = origin.y;
                             const angle = Math.random() * Math.PI * 2;
                             const speed = Math.random() * 12 + 4;
@@ -305,18 +311,32 @@
 
                 update() {
                     let speedMultiplier = 1;
-                    if ((hoverState === 'left' && (this.type === 'star' || this.type === 'shooting_star')) || 
-                        (hoverState === 'right' && (this.type === 'ember' || this.type === 'spark'))) {
-                        speedMultiplier = 5;
+
+                    // 強化 hover 效果
+                    if (hoverState === 'left' && this.x < width / 2) {
+                        speedMultiplier = 8; // 更快的速度
+                        // 旋渦效果
+                        if ((this.type === 'star' || this.type === 'shooting_star') && mouse.x != null) {
+                            const dx = this.x - mouse.x;
+                            const dy = this.y - mouse.y;
+                            const dist = Math.sqrt(dx * dx + dy * dy);
+                            if (dist > 30 && dist < 250) { // 在鼠標周圍一定範圍內產生旋渦
+                                const swirlStrength = (1 - (dist / 250)) * 0.3; // 越近旋渦越強
+                                this.vx += -dy / dist * swirlStrength;
+                                this.vy += dx / dist * swirlStrength;
+                            }
+                        }
+                    } else if (hoverState === 'right' && this.x > width / 2) {
+                        speedMultiplier = 8;
                     }
                     
-                    if (mouse.down && (this.type === 'star' || this.type === 'shooting_star')) {
+                    if (mouse.down && this.x < width / 2) {
                         const dx = this.x - mouse.x; const dy = this.y - mouse.y;
                         const dist = Math.sqrt(dx * dx + dy * dy);
                         if (dist < 200) {
                             const force = (200 - dist) / 200;
-                            this.vx += (mouse.dx || 0) * force * 0.2;
-                            this.vy += (mouse.dy || 0) * force * 0.2;
+                            this.vx += (mouse.dx || 0) * force * 0.2 * (this.depth || 1);
+                            this.vy += (mouse.dy || 0) * force * 0.2 * (this.depth || 1);
                         }
                     }
 
@@ -326,7 +346,16 @@
                     this.vx *= 0.97; this.vy *= 0.97;
 
                     switch (this.type) {
-                        case 'star': case 'shooting_star':
+                        case 'star':
+                            // 星星脈動
+                            this.opacity = this.baseOpacity + Math.sin(Date.now() * this.pulseSpeed + this.pulseOffset) * this.baseOpacity * 0.4;
+                            if (this.x > width / 2 && !this.transformed) {
+                                this.transformed = true; this.type = 'fading_spark';
+                                this.vx = (Math.random() - 0.5) * 4; this.vy = Math.random() * 5 + 3;
+                                this.life = 100; this.size = Math.random() * 3 + 2;
+                            }
+                            break;
+                        case 'shooting_star':
                             if (this.x > width / 2 && !this.transformed) {
                                 this.transformed = true; this.type = 'fading_spark';
                                 this.vx = (Math.random() - 0.5) * 4; this.vy = Math.random() * 5 + 3;
@@ -393,6 +422,21 @@
 
             function animate() {
                 ctx.clearRect(0, 0, width, height);
+
+                if (hoverState !== 'none') {
+                    ctx.save();
+                    const gradientCenterX = hoverState === 'left' ? width * 0.25 : width * 0.75;
+                    const gradientColor = hoverState === 'left' ? 'rgba(150, 150, 200, 0.1)' : 'rgba(255, 100, 50, 0.1)';
+
+                    const glowGradient = ctx.createRadialGradient(gradientCenterX, height / 2, 0, gradientCenterX, height / 2, width / 1.5);
+                    glowGradient.addColorStop(0, gradientColor);
+                    glowGradient.addColorStop(1, 'rgba(0, 0, 0, 0)');
+
+                    ctx.fillStyle = glowGradient;
+                    ctx.fillRect(0, 0, width, height);
+                    ctx.restore();
+                }
+
                 particles.forEach(p => { p.update(); p.draw(); });
                 ctx.globalAlpha = 1;
                 requestAnimationFrame(animate);
