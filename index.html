@@ -79,7 +79,7 @@
     <canvas id="interactive-background"></canvas>
 
     <!-- 主要內容 -->
-    <main class="min-h-screen flex flex-col items-center justify-center p-4">
+    <main id="main-content" class="min-h-screen flex flex-col items-center justify-center p-4">
         
         <div class="content-wrapper w-full max-w-4xl rounded-2xl p-6 sm:p-8 md:p-12 text-center shadow-2xl">
 
@@ -102,17 +102,18 @@
 
             <!-- 專輯選擇區塊 -->
             <section class="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 mb-12">
-                <a href="https://dbding.github.io/WBW-Debut-Album/" target="_blank" rel="noopener noreferrer" class="album-card album-card-1 block rounded-xl p-6 cursor-pointer">
+                <!-- 移除 a 標籤，改用 div，並加入 data-src 屬性 -->
+                <div data-src="https://dbding.github.io/WBW-Debut-Album/" class="album-card album-card-1 block rounded-xl p-6 cursor-pointer">
                     <p class="text-sm text-gray-400">首張專輯</p>
                     <h2 class="album-title text-3xl sm:text-4xl font-bold mt-1">王不亡</h2>
                     <p class="text-gray-300 mt-3">一張探索存在、記憶與虛無的宇宙史詩。</p>
-                </a>
+                </div>
                 
-                <a href="https://dbding.github.io/DisorderedGarden/" target="_blank" rel="noopener noreferrer" class="album-card album-card-2 block rounded-xl p-6 cursor-pointer">
+                <div data-src="https://dbding.github.io/DisorderedGarden/" class="album-card album-card-2 block rounded-xl p-6 cursor-pointer">
                     <p class="text-sm text-gray-400">第二張專輯</p>
                     <h2 class="album-title text-3xl sm:text-4xl font-bold mt-1">失序花園</h2>
                     <p class="text-gray-300 mt-3">一場關於秩序崩壞與野蠻生長的搖滾寓言。</p>
-                </a>
+                </div>
             </section>
 
             <!-- 外部連結 -->
@@ -132,9 +133,18 @@
                     </a>
                 </div>
             </footer>
-
         </div>
     </main>
+
+    <!-- 新增：專輯 Iframe 檢視器 (預設隱藏) -->
+    <div id="album-viewer" class="fixed inset-0 z-50 hidden bg-black">
+        <iframe id="album-iframe" src="about:blank" frameborder="0" class="w-full h-full"></iframe>
+        <button id="close-album-viewer" class="absolute top-5 right-5 z-50 p-2 rounded-full bg-white/20 hover:bg-white/40 transition-colors">
+            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+        </button>
+    </div>
     
     <footer class="fixed bottom-4 w-full text-center text-gray-600 text-xs z-10">
         <p>© 2025 Wang Bu-Wang. All Rights Reserved.</p>
@@ -147,15 +157,45 @@
             let width = canvas.width = window.innerWidth;
             let height = canvas.height = window.innerHeight;
 
-            // --- 全域設定 (簡潔化) ---
             const STAR_COUNT = Math.floor(width * height / 8000); 
             const SHOOTING_STAR_COUNT = 8; 
             const EMBER_COUNT = Math.floor(width * height / 8000);
             const SPARK_COUNT = 10;
             let particles = [];
             let hoverState = 'none';
+
+            // --- 專輯檢視器邏輯 ---
+            const mainContent = document.getElementById('main-content');
+            const albumViewer = document.getElementById('album-viewer');
+            const albumIframe = document.getElementById('album-iframe');
+            const closeButton = document.getElementById('close-album-viewer');
+            const albumCards = document.querySelectorAll('.album-card');
+
+            function showAlbum(url) {
+                albumIframe.src = url;
+                albumViewer.classList.remove('hidden');
+                mainContent.classList.add('hidden');
+            }
+
+            function hideAlbum() {
+                albumIframe.src = 'about:blank'; // 清空 iframe 內容以停止背景動畫
+                albumViewer.classList.add('hidden');
+                mainContent.classList.remove('hidden');
+            }
+
+            albumCards.forEach(card => {
+                card.addEventListener('click', () => {
+                    const url = card.dataset.src;
+                    if (url) {
+                        showAlbum(url);
+                    }
+                });
+            });
+
+            closeButton.addEventListener('click', hideAlbum);
             
-            // --- 新增專輯卡片事件監聽 ---
+            // --- 粒子動畫邏輯 (與之前相同) ---
+            
             const albumCard1 = document.querySelector('.album-card-1');
             const albumCard2 = document.querySelector('.album-card-2');
 
@@ -165,7 +205,6 @@
             albumCard2.addEventListener('mouseleave', () => hoverState = 'none');
 
 
-            // --- 滑鼠/觸控互動物件 ---
             const mouse = {
                 x: null, y: null,
                 px: null, py: null,
@@ -173,7 +212,6 @@
                 down: false
             };
 
-            // --- 監聽滑鼠與觸控事件 ---
             function updateMousePosition(e) {
                 const event = e.touches ? e.touches[0] : e;
                 mouse.x = event.clientX;
@@ -206,15 +244,13 @@
                 mouse.dy = mouse.y - mouse.py;
             });
 
-            // --- 點燃火花函式 ---
             function createSparkBurst(x, y) {
-                 const burstSize = 30; // 減少火花數量
+                 const burstSize = 30;
                  for (let i = 0; i < burstSize; i++) {
                      particles.push(new Particle('burst_spark', { x, y }));
                  }
             }
             
-            // --- 粒子類別 ---
             class Particle {
                 constructor(type, origin = null) {
                     this.type = type;
@@ -231,9 +267,9 @@
                         case 'star':
                             this.x = Math.random() * width / 2;
                             this.y = Math.random() * height;
-                            this.vx = (Math.random() - 0.5) * 0.2; // 減慢速度
+                            this.vx = (Math.random() - 0.5) * 0.2;
                             this.vy = (Math.random() - 0.5) * 0.2;
-                            this.size = Math.random() * 1.5 + 0.5; // 縮小尺寸
+                            this.size = Math.random() * 1.5 + 0.5;
                             this.opacity = Math.random() * 0.5 + 0.2;
                             break;
                         case 'shooting_star':
@@ -283,7 +319,7 @@
                     this.x += this.vx * speedMultiplier * 0.1;
                     this.y += this.vy * speedMultiplier * 0.1;
 
-                    this.vx *= 0.97; this.vy *= 0.97; // 增加阻力
+                    this.vx *= 0.97; this.vy *= 0.97;
 
                     switch (this.type) {
                         case 'star': case 'shooting_star':
